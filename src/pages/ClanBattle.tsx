@@ -47,7 +47,8 @@ const ClanBattle = () => {
       "человек": "Адаптивная тактика: +15% ко всем характеристикам в длительных сражениях",
       "орк": "Боевой клич: Снижает защиту монстров на 15%",
       "дварф": "Каменная кожа: Снижает входящий урон на 20%",
-      "ящер": "Ядовитая кровь: Наносит 10 урона атакующим монстрам"
+      "ящер": "Ядовитая кровь: Наносит 10 урона атакующим монстрам",
+      "капибара": "Водная адаптация: +30% к скорости атаки и 15% к уклонению"
     };
 
     // Анализ описания клана для генерации контекстных способностей
@@ -136,7 +137,7 @@ const ClanBattle = () => {
               name="leaderRace" 
               value={clanStats.leaderRace} 
               onChange={handleInputChange} 
-              placeholder="Например: эльф, гном, человек, орк"
+              placeholder="Например: эльф, гном, человек, орк, капибара"
               className="mb-4"
             />
             
@@ -148,12 +149,20 @@ const ClanBattle = () => {
               placeholder="Опишите ваш клан, его историю и особенности..."
               className="h-40"
             />
+            
+            {clanStats.leaderRace.toLowerCase() === "капибара" && (
+              <div className="mt-4 p-3 bg-amber-100 rounded-md">
+                <p className="text-sm text-amber-800">
+                  <span className="font-bold">Капибары особенные!</span> Они получают особые бонусы и уникальную аватарку.
+                </p>
+              </div>
+            )}
           </div>
         </div>
         
         <Button 
           onClick={generateAbilities} 
-          className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700"
+          className={`w-full mt-2 ${clanStats.leaderRace.toLowerCase() === "капибара" ? "bg-amber-600 hover:bg-amber-700" : "bg-indigo-600 hover:bg-indigo-700"}`}
           disabled={!clanStats.name || !clanStats.leaderRace || !clanStats.description}
         >
           Сгенерировать способности

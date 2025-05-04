@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -45,6 +45,7 @@ const MonsterBattle = ({ clan, abilities }: MonsterBattleProps) => {
   const [clanCurrentHealth, setClanCurrentHealth] = useState(clan.health);
   const [battleEnded, setBattleEnded] = useState(false);
   const [roundCount, setRoundCount] = useState(0);
+  const [isCapybaraRage, setIsCapybaraRage] = useState(false);
   
   const monsters = [
     {
@@ -76,6 +77,17 @@ const MonsterBattle = ({ clan, abilities }: MonsterBattleProps) => {
     }
   ];
 
+  // Проверка, является ли лидер капибарой
+  const isCapybara = clan.leaderRace.toLowerCase() === "капибара";
+
+  useEffect(() => {
+    // Если здоровье клана меньше 30%, и лидер - капибара, активируем ярость
+    if (isCapybara && clanCurrentHealth < clan.health * 0.3 && !isCapybaraRage) {
+      setIsCapybaraRage(true);
+      setBattleLog(prev => [...prev, "🌊 КАПИБАРСКАЯ ЯРОСТЬ АКТИВИРОВАНА! Урон увеличен на 20%, восстановление 5 здоровья каждый ход!"]);
+    }
+  }, [clanCurrentHealth, clan.health, isCapybara, isCapybaraRage]);
+
   const attack = () => {
     if (battleEnded) return;
     
@@ -87,6 +99,18 @@ const MonsterBattle = ({ clan, abilities }: MonsterBattleProps) => {
     
     // Применение эффектов способностей
     const abilityText = abilities.join(' ').toLowerCase();
+    
+    // Капибарская ярость
+    if (isCapybara && isCapybaraRage) {
+      clanDamage *= 1.2; // +20% к урону
+      setClanCurrentHealth(prev => Math.min(clan.health, prev + 5)); // Восстановление 5 здоровья
+      newLog.push(`🌊 Капибара восстанавливает 5 здоровья благодаря ярости!`);
+    }
+    
+    // Водная адаптация капибар
+    if (isCapybara && abilityText.includes("водная адаптация")) {
+      clanDamage *= 1.1; // +10% к урону благодаря ускоренной атаке
+    }
     
     if (abilityText.includes("критическ") && Math.random() < 0.2) {
       clanDamage *= 2;
@@ -129,7 +153,15 @@ const MonsterBattle = ({ clan, abilities }: MonsterBattleProps) => {
       newLog.push(`🛡️ Способность "Каменная кожа" снижает урон от монстра!`);
     }
     
-    newLog.push(`${currentMonster.name} атакует и наносит ${actualDamage.toFixed(0)} урона.`);
+    // Уклонение капибар
+    if (isCapybara && abilityText.includes("водная адаптация") && Math.random() < 0.15) {
+      actualDamage = 0;
+      newLog.push(`🌊 Капибара уклоняется от атаки!`);
+    }
+    
+    if (actualDamage > 0) {
+      newLog.push(`${currentMonster.name} атакует и наносит ${actualDamage.toFixed(0)} урона.`);
+    }
     
     // Контратака от способностей
     if (abilityText.includes("наносит") && abilityText.includes("атакующим")) {
@@ -157,6 +189,7 @@ const MonsterBattle = ({ clan, abilities }: MonsterBattleProps) => {
     setClanCurrentHealth(clan.health);
     setBattleEnded(false);
     setRoundCount(0);
+    setIsCapybaraRage(false);
   };
 
   return (
@@ -165,13 +198,21 @@ const MonsterBattle = ({ clan, abilities }: MonsterBattleProps) => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="text-center">
-          <h3 className="font-bold mb-2">Клан: {clan.name}</h3>
-          <Progress value={(clanCurrentHealth / clan.health) * 100} className="h-2 mb-1" />
+          <h3 className="font-bold mb-2">
+            Клан: {clan.name}
+            {isCapybaraRage && <span className="ml-2 text-amber-600">🌊 В ЯРОСТИ!</span>}
+          </h3>
+          <Progress 
+            value={(clanCurrentHealth / clan.health) * 100} 
+            className={`h-2 mb-1 ${isCapybara ? 'bg-amber-100' : ''}`} 
+            indicatorClassName={isCapybaraRage ? 'bg-amber-500' : ''}
+          />
           <p className="text-sm mb-4">Здоровье: {clanCurrentHealth}/{clan.health}</p>
           
-          <div className="p-3 bg-indigo-100 rounded-md mb-2">
-            <p className="font-semibold">⚔️ Сила атаки: {clan.strength}</p>
+          <div className={`p-3 rounded-md mb-2 ${isCapybara ? 'bg-amber-100' : 'bg-indigo-100'}`}>
+            <p className="font-semibold">⚔️ Сила атаки: {clan.strength}{isCapybaraRage ? ' (+20%)' : ''}</p>
             <p className="font-semibold">🛡️ Защита: {clan.defense}</p>
+            {isCapybara && <p className="font-semibold">🌊 Раса лидера: Капибара</p>}
           </div>
         </div>
         
@@ -198,7 +239,7 @@ const MonsterBattle = ({ clan, abilities }: MonsterBattleProps) => {
         <Button 
           onClick={attack} 
           disabled={battleEnded}
-          className="flex-1 bg-red-600 hover:bg-red-700"
+          className={`flex-1 ${isCapybara ? 'bg-amber-600 hover:bg-amber-700' : 'bg-red-600 hover:bg-red-700'}`}
         >
           <Icon name="Swords" className="mr-2" />
           Атаковать
@@ -227,7 +268,15 @@ const MonsterBattle = ({ clan, abilities }: MonsterBattleProps) => {
           ) : (
             <ul className="space-y-1">
               {battleLog.map((log, index) => (
-                <li key={index} className={`text-sm ${log.includes("побежден") || log.includes("победил") ? "font-bold text-green-600" : log.includes("поражение") ? "font-bold text-red-600" : ""}`}>
+                <li key={index} className={`text-sm ${
+                  log.includes("побежден") || log.includes("победил") 
+                    ? "font-bold text-green-600" 
+                    : log.includes("поражение") 
+                      ? "font-bold text-red-600" 
+                      : log.includes("КАПИБАРСКАЯ ЯРОСТЬ") || log.includes("Капибара")
+                        ? "font-bold text-amber-600"
+                        : ""
+                }`}>
                   {log}
                 </li>
               ))}
