@@ -48,6 +48,7 @@ const ClanAbilities = ({ abilities, clan }: ClanAbilitiesProps) => {
         </div>
         <Badge className={`${isCapybara ? 'bg-amber-600' : 'bg-indigo-600'}`}>
           {clan.leaderRace}
+          {isCapybara && ' 👑'}
         </Badge>
       </div>
       
@@ -62,7 +63,7 @@ const ClanAbilities = ({ abilities, clan }: ClanAbilitiesProps) => {
         </div>
         <div>
           <p className="text-gray-600">Здоровье</p>
-          <p className="text-xl font-bold">{clan.health}</p>
+          <p className="text-xl font-bold">{isCapybara ? '∞' : clan.health}</p>
         </div>
       </div>
       
@@ -70,6 +71,17 @@ const ClanAbilities = ({ abilities, clan }: ClanAbilitiesProps) => {
         <h3 className="font-semibold mb-2">Описание:</h3>
         <p className="text-gray-700 italic">{clan.description}</p>
       </div>
+      
+      {isCapybara && (
+        <div className="mb-4 p-3 bg-amber-100 rounded-md text-amber-800 animate-pulse">
+          <h3 className="font-bold flex items-center">
+            <span className="mr-2">✨</span>
+            Секретный бонус капибар:
+            <span className="ml-2">✨</span>
+          </h3>
+          <p>Капибары обладают бесконечным запасом здоровья и непобедимы в бою!</p>
+        </div>
+      )}
       
       <div>
         <h3 className="font-semibold mb-2">Способности:</h3>
@@ -85,6 +97,11 @@ const ClanAbilities = ({ abilities, clan }: ClanAbilitiesProps) => {
           {isCapybara && (
             <li className="border-l-4 border-amber-500 pl-3 py-1 bg-amber-50">
               <span className="font-bold">Капибарская мудрость:</span> Когда впадаешь в ярость, противники получают на 20% больше урона, а ты восстанавливаешь 5 здоровья каждый ход
+            </li>
+          )}
+          {isCapybara && (
+            <li className="border-l-4 border-amber-500 pl-3 py-1 bg-amber-50">
+              <span className="font-bold">Бессмертие капибар:</span> Капибары невосприимчивы к урону от монстров и имеют бесконечный запас здоровья
             </li>
           )}
         </ul>
