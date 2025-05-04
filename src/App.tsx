@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import ClanBattle from "./pages/ClanBattle";
 import NotFound from "./pages/NotFound";
+import Navigation from "./components/Navigation";
 
 const queryClient = new QueryClient();
 
@@ -16,6 +17,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <Navigation />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/clan-battle" element={<ClanBattle />} />
